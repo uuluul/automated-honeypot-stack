@@ -1,0 +1,31 @@
+---
+- name: Rollback T-Pot honeypot config
+  hosts: tpot_nodes
+  become: yes
+
+  vars:
+    base: "/home/{{ ansible_user }}/tpot-project"
+    service: ""
+    version: ""
+
+  tasks:
+    - name: Confirm rollback file exists
+      stat:
+        path: "{{ base }}/output/{{ service }}.conf-{{ version }}"
+      register: rollback_file
+
+    - name: Stop if file does not exist
+      fail:
+        msg: "Rollback file not found!"
+      when: not rollback_file.stat.exists
+
+    - name: Restore config
+      copy:
+        src: "{{ base }}/output/{{ service }}.conf-{{ version }}"
+        dest: "/home/{{ ansible_user }}/tpotce/data/{{ service }}/config/{{ service }}.conf"
+        mode: '0644'
+
+    - name: Restart Docker container
+      command: "docker compose restart {{ service }}"
+      args:
+        chdir: "/home/{{ ansible_user }}/tpotce"

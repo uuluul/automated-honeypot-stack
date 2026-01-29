@@ -1,0 +1,26 @@
+---
+- name: Deploy honeypot management tool
+  hosts: tpot_nodes
+  become: yes
+
+  vars:
+    project_path: "/home/{{ ansible_user }}/tpot-project"
+
+  tasks:
+    - name: Create project directory
+      file:
+        path: "{{ project_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Upload honeypot_tool.py
+      copy:
+        src: ./files/honeypot_tool.py
+        dest: "{{ project_path }}/honeypot_tool.py"
+        mode: '0755'
+
+    - name: Upload config templates (Cowrie, Honeytrap, Dionaea)
+      copy:
+        src: "./files/dist/"
+        dest: "{{ project_path }}/dist/"
+        mode: '0644'

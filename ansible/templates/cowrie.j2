@@ -1,0 +1,16 @@
+[ssh]
+{% if port %}
+listen_port = {{ port }}
+{% endif %}
+
+{% if banner %}
+banner_file = {{ banner }}
+{% endif %}
+
+{% if timeout %}
+session_timeout = {{ timeout }}
+{% endif %}
+
+{% if creds %}
+auth_class = {{ creds }}
+{% endif %}

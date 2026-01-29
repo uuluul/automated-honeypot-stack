@@ -1,0 +1,32 @@
+---
+- name: Install T-Pot on target machines
+  hosts: tpot_nodes
+  become: yes
+
+  tasks:
+    - name: Install dependencies
+      apt:
+        name:
+          - git
+          - curl
+          - docker.io
+          - docker-compose
+        state: present
+        update_cache: yes
+
+    - name: Clone T-Pot CE repo
+      git:
+        repo: "https://github.com/telekom-security/tpotce"
+        dest: "/home/{{ ansible_user }}/tpotce"
+        version: master
+
+    - name: Run T-Pot installer
+      command: "bash install.sh --type=auto"
+      args:
+        chdir: "/home/{{ ansible_user }}/tpotce"
+
+    - name: Enable & Start Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: true

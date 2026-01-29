@@ -1,0 +1,16 @@
+[logging]
+{% if loglevel %}
+level = {{ loglevel }}
+{% endif %}
+
+
+[listen]
+{% if ports %}
+ports = {{ ports }}
+{% endif %}
+
+
+[banner]
+{% if banner %}
+text = "{{ banner }}"
+{% endif %}

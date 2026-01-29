@@ -1,0 +1,21 @@
+---
+- name: Collect honeypot logs to central server
+  hosts: tpot_nodes
+  become: yes
+
+  vars:
+    log_dest: "/home/seed/central-logs/{{ inventory_hostname }}"
+
+  tasks:
+    - name: Ensure local folder exists
+      delegate_to: localhost
+      file:
+        path: "{{ log_dest }}"
+        state: directory
+
+    - name: Rsync log directory
+      synchronize:
+        src: "/home/{{ ansible_user }}/tpotce/data/"
+        dest: "{{ log_dest }}/"
+        mode: pull
+        recursive: yes
