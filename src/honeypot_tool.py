@@ -40,7 +40,6 @@ def run(cmd):
         print("Failed to execute command")
         sys.exit(1)
 
-
 # ===========================
 # 寫入 output + deploy
 # ===========================
@@ -61,6 +60,11 @@ def save_and_deploy(filename, content, real_path, container):
     with open(output_file, "w") as f:
         f.write(content)
     print("Backup Completed")
+
+    real_dir = os.path.dirname(real_path)
+    if not os.path.exists(real_dir):
+        print(f"\n[Warning] Target directory does not exist: {real_dir}")
+        print("Please check if TPOT_ROOT is correct.")
 
     # 寫入 bind mount 路徑（這個會直接影響容器）
     print(f"\nWriting to T-Pot bind mount：{real_path}")
