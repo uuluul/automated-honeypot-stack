@@ -4,21 +4,31 @@ import subprocess
 import re
 import sys
 from datetime import datetime
+from pathlib import Path
 
 # ===========================
 # 路徑設定（正確 bind mount）
 # ===========================
 
-PROJECT_ROOT = "/home/seed/tpot-project"
+# 動態取得當前使用者的家目錄 (例如 /home/seed 或 /Users/username)
+HOME_DIR = str(Path.home())
+
+# 設定專案與 T-Pot 根目錄
+# 優先讀取環境變數 TPOT_PROJECT_ROOT，如果沒有則預設為 ~/tpot-project
+PROJECT_ROOT = os.getenv("TPOT_PROJECT_ROOT", f"{HOME_DIR}/tpot-project")
+
+# 優先讀取環境變數 TPOT_ROOT，如果沒有則預設為 ~/tpotce
+TPOT_ROOT = os.getenv("TPOT_ROOT", f"{HOME_DIR}/tpotce")
+
 OUTPUT_DIR = f"{PROJECT_ROOT}/output"
 
+# 設定各個 Honeypot 的設定檔路徑 (使用 f-string 組合)
 # T-Pot bind mount 的真正有效設定檔
-COWRIE_REAL = "/home/seed/tpotce/docker/cowrie/dist/cowrie.cfg"
-DIONAEA_REAL = "/home/seed/tpotce/docker/dionaea/dist/etc/dionaea.cfg"
-HONEYTRAP_REAL = "/home/seed/tpotce/data/honeytrap/config/honeytrap.conf"
+COWRIE_REAL = f"{TPOT_ROOT}/docker/cowrie/dist/cowrie.cfg"
+DIONAEA_REAL = f"{TPOT_ROOT}/docker/dionaea/dist/etc/dionaea.cfg"
+HONEYTRAP_REAL = f"{TPOT_ROOT}/data/honeytrap/config/honeytrap.conf"
 
-DOCKER_COMPOSE_PATH = "/home/seed/tpotce"
-
+DOCKER_COMPOSE_PATH = TPOT_ROOT
 
 # ===========================
 # Shell helper
@@ -45,20 +55,20 @@ def save_and_deploy(filename, content, real_path, container):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%dT%H%M%S")
 
-    # 1️⃣ 寫入備份
+    # 寫入備份
     output_file = f"{OUTPUT_DIR}/{filename}-{stamp}"
     print(f"\nWriting backup to {output_file}")
     with open(output_file, "w") as f:
         f.write(content)
     print("Backup Completed")
 
-    # 2️⃣ 寫入 bind mount 路徑（這個會直接影響容器）
+    # 寫入 bind mount 路徑（這個會直接影響容器）
     print(f"\nWriting to T-Pot bind mount：{real_path}")
     with open(real_path, "w") as f:
         f.write(content)
     print("bind mount configuration has been updated")
 
-    # 3️⃣ 重啟 container
+    # 重啟 container
     print(f"\nrestarting {container} ...")
     run(f"cd {DOCKER_COMPOSE_PATH} && docker compose restart {container}")
     print(f"{container} has been restarted.\n")
@@ -82,12 +92,12 @@ def ask_cowrie_params():
 
 
 def ask_dionaea_params():
-    print("\n=== 🦠 Dionaea 設定 ===")
+    print("\n=== Dionaea 設定 ===")
     return {"services": input("啟用的 services（空白＝不改）：").strip()}
 
 
 def ask_honeytrap_params():
-    print("\n=== 🍯 Honeytrap 設定修改 ===")
+    print("\n=== Honeytrap 設定修改 ===")
     print("插件格式： pluginName:yes 或 pluginName:no，用逗號隔開")
     print("可用插件： ftpDownload, tftpDownload, b64Decode, deUnicode, vncDownload")
 
